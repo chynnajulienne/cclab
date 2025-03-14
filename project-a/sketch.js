@@ -25,14 +25,18 @@ let toyY = -1;
 let jumping = false; 
 
 function setup() {
-  let canvas = createCanvas(800, 500);
+  createCanvas(800, 500);
+   let canvas = createCanvas(800, 500);
   canvas.id("p5-canvas");
   canvas.parent("p5-canvas-container")
   angleMode(DEGREES);
+  
 }
 
 function draw() {
   background(176, 224, 230);
+  
+  //yo i changed
 
   // Text at the top
   fill(128, 128, 0);
