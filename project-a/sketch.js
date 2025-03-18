@@ -11,18 +11,25 @@ let cloudSpeed = 1;
 
 let xPos = 310;
 let yPos = 350;
-let speed = 2; 
+let speed = 2;
 let direction = 1; // 1 for right, -1 for left
 let stepAngle = 0; // leg oscillation movement
 
-let meatX = -1; 
-let meatY = -1; 
-let eating = false; 
-let eatingDuration = 0; // duration for eating 
+let meatX = -1;
+let meatY = -1;
+let eating = false;
+let eatingDuration = 0; // duration for eating
 
 let toyX = -1;
-let toyY = -1; 
-let jumping = false; 
+let toyY = -1;
+let jumping = false;
+
+let toyZ = -1;
+let toyA = -1;
+let toySpeedY = 0;
+let toyFalling = false;
+let gravity = 0.5;
+let bounceFactor = -0.7;
 
 function setup() {
   // createCanvas(800, 500);
@@ -30,24 +37,15 @@ function setup() {
   canvas.id("p5-canvas");
   canvas.parent("p5-canvas-container")
   angleMode(DEGREES);
-  
 }
 
 function draw() {
   background(176, 224, 230);
-  
-  //yo i changed
-
-  // Text at the top
-  fill(128, 128, 0);
-  textSize(18);
-  textAlign(CENTER, TOP);
-  text("Press 'F' to feed or Hold 'P' to play", width / 2, 10);
 
   // Ground (sand)
   noStroke();
   fill(255, 248, 220);
-  rect(0, 300, width, height); 
+  rect(0, 300, width, height);
 
   // Clouds moving
   fill(255, 255, 255, 150);
@@ -76,27 +74,36 @@ function draw() {
   cloud8X += cloudSpeed;
   if (cloud8X > width) cloud8X = -180;
 
+  // Panel
+  fill(180, 120, 40);
+  rect(50, 20, 250, 80);
+  drawMeat(80, 57);
+  drawCatToy(400, 120);
+
+  // Text at the top
+  fill("white");
+  textSize(16);
+  text("feeding!", 105, 65);
+
+  fill("white");
+  textSize(16);
+  text("hold to", 238, 55);
+  text("play!", 245, 75);
+
   // Draw trees
-  drawTree(90, 470, 30, 150);
-  drawTree(500, 430, 25, 140);
-  drawTree(200, 380, 30, 155);
-  drawTree(630, 379, 25, 145);
-  drawTree(327, 440, 35, 160);
+  drawTree(90, 440, 30, 150); // left most
+  drawTree(460, 440, 25, 140); // mid right
+  drawTree(630, 399, 25, 145); // right most
 
-  // Draw meat 
-  if (meatX !== -1 && meatY !== -1) {
-    drawMeat(meatX, meatY);
-  }
-
-  // check if the lion should start eating lol
+  // check if the lion should start eating
   checkIfEating();
 
   // move lion to meat in x direction when it is eating
   if (eating) {
-    xPos = lerp(xPos, meatX, 0.05); 
+    xPos = lerp(xPos, meatX, 0.05);
     eatingDuration++;
 
-    // Stop eating after some tiem
+    // Stop eating after some time
     if ((xPos > meatX - 50 && xPos < meatX + 50) || eatingDuration > 200) {
       eating = false;
       meatX = -1; // Remove meat from screen after some time
@@ -119,58 +126,53 @@ function draw() {
 
   // bouncing while walking
   let yOffset = jumping ? sin(frameCount * 10) * 15 : sin(frameCount * 5) * 6;
-  let xJitter = random(-1, 1);
+
+  // Check if the mouse is touching the lion's head or body
+  if (
+    mouseX > xPos - 125 &&
+    mouseX < xPos + 125 &&
+    mouseY > yPos - 125 &&
+    mouseY < yPos + 50
+  ) {
+    xJitter = random(-4, 4); // purring when petting lion
+  } else {
+    xJitter = random(-1, 1); // Normal jitter
+  }
 
   // call draw lion
   drawLion(xPos + xJitter, yPos + yOffset, direction, stepAngle);
 
+  // Draw tree
+  drawTree(267, 490, 35, 160);
+
   // Draw cat toy if it exists
-  if (toyX !== -1 && toyY !== -1) {
+  if (toyX >= 0 && toyY >= 0) {
     drawCatToy(toyX, toyY);
   }
+
+  // Draw meat
+  if (meatX >= 0 && meatY >= 0) {
+    drawMeat(meatX, meatY);
+  }
+  
+  // Draw bushes in the bottom corners
+  drawBush(100, height - 100); // Bottom left corner
+  drawBush(width - 100, height - 100); // Bottom right corner
 }
 
 function drawTree(x, y, trunkWidth, trunkHeight) {
-  
   // Tree trunk
-  fill(139, 69, 19); 
+  fill(139, 69, 19);
   rect(x - trunkWidth / 2, y - trunkHeight, trunkWidth, trunkHeight); // Tree trunk
 
   // Tree leaves
-  fill(128, 128, 0); 
+  fill(128, 128, 0);
   circle(x, y - trunkHeight - 40, 100); // Leaves size fixed
   circle(x - 25, y - trunkHeight - 60, 90); // Left side leaf
   circle(x + 25, y - trunkHeight - 60, 90); // Right side leaf
-  circle(x, y - trunkHeight - 80, 80); // Top leaf
+  circle(x, y - trunkHeight - 120, 80); // Top leaf
   circle(x - 35, y - trunkHeight - 100, 70); // Extra left leaf
   circle(x + 35, y - trunkHeight - 100, 70); // Extra right leaf
-}
-
-function drawMeat(x, y) {
-  push();
-  translate(x, y);
-  scale(0.2); 
-  // Meat body
-  fill(200, 50, 50); 
-  stroke(150, 30, 30); 
-  strokeWeight(3);
-  ellipse(0, 0, 200, 300); 
-
-  // Draw the bone in the middle
-  fill(240); 
-  noStroke();
-
-  ellipse(-30, 0, 40, 60); // Left part of the bone
-  ellipse(30, 0, 40, 60); // Right part of the bone
-
-  rect(-30, -10, 60, 20); // Middle part of the bone
-
-  pop();
-}
-
-function drawCatToy(x, y) {
-  fill(57, 255, 20); // Neon green 
-  ellipse(x, y, 50, 50); 
 }
 
 function drawLion(x, y, dir, step) {
@@ -178,12 +180,11 @@ function drawLion(x, y, dir, step) {
 
   // face towards the meat if it is eating
   if (eating) {
-    
     // Flip direction based on where the meat is
     if (meatX < x) {
-      dir = -1; 
+      dir = -1;
     } else if (meatX > x) {
-      dir = 1; 
+      dir = 1;
     }
   }
 
@@ -196,20 +197,22 @@ function drawLion(x, y, dir, step) {
 
   // stroke color based on the lion's state
   if (jumping) {
-    stroke(57, 255, 20); 
+    stroke(57, 255, 20); // Neon green when playing
   } else if (eating) {
-    stroke(255, 105, 180); 
+    stroke(255, 105, 180); // Pink when eating
   } else {
-    stroke(255, 204, 0); 
+    let yellowOscillation = map(sin(frameCount * 0.9), -1, 1, 200, 255); // Oscillates between darker and lighter yellow
+    stroke(yellowOscillation, yellowOscillation * 0.9, 0);
   }
 
-  // Set the fill color based on the lion's state
+  // fill color of lion
   if (jumping) {
-    fill(57, 255, 20); 
+    fill(57, 255, 20); // Neon green when playing
   } else if (eating) {
-    fill(255, 105, 180); 
+    fill(255, 105, 180); // Pink when eating
   } else {
-    fill(255, 204, 0); 
+    let yellowOscillation = map(sin(frameCount * 0.9), -1, 1, 200, 255); // Oscillates between dark and light yellow
+    fill(yellowOscillation, yellowOscillation * 0.9, 0);
   }
 
   // Mane
@@ -296,6 +299,52 @@ function drawLion(x, y, dir, step) {
   pop();
 }
 
+function drawMeat(x, y) {
+  push();
+  translate(x, y);
+  scale(0.2);
+
+  // Meat body
+  fill(200, 50, 50);
+  stroke(150, 30, 30);
+  strokeWeight(3);
+  ellipse(0, 0, 200, 300);
+
+  // Draw the bone in the middle
+  fill(240);
+  noStroke();
+
+  ellipse(-30, 0, 40, 60); // Left part of the bone
+  ellipse(30, 0, 40, 60); // Right part of the bone
+
+  rect(-30, -10, 60, 20); // Middle part of the bone
+
+  pop();
+}
+
+function drawCatToy(x, y) {
+  push();
+
+  // Draw the main tennis ball (neon green)
+
+  scale(0.5);
+  fill(173, 255, 47); // Neon green color
+  noStroke();
+  ellipse(x, y, 100, 100); // Ball shape
+
+  // Add a white curve for the tennis ball's seam
+  stroke(255); // White color for the seam
+  strokeWeight(8);
+  noFill();
+  beginShape();
+  arc(x - 60, y, 100, 100, -45, 45);
+  arc(x + 60, y, 100, 100, 135, 225);
+
+  endShape();
+
+  pop();
+}
+
 function checkIfEating() {
   if (
     eating === false &&
@@ -308,27 +357,49 @@ function checkIfEating() {
   }
 }
 
-function keyPressed() {
-  if (key === "f" || key === "F") {
-    meatX = mouseX;
-    meatY = mouseY;
-
-    // Lion starts moving towards the meat
+function mousePressed() {
+  // meat button is clicked
+  if (mouseX >= 20 && mouseX <= 120 && mouseY >= 20 && mouseY <= 100) {
+    meatX = random(100, width - 100);
+    meatY = 300; // Ensure it's on the ground
     eating = true;
-    eatingDuration = 0; // Reset eating duration
+    eatingDuration = 0;
   }
-  if (key === "p" || key === "P") {
-    toyX = random(100, width - 100);
-    toyY = random(100, 300);
-    jumping = true;
+
+  // toy button is clicked
+  if (mouseX >= 140 && mouseX <= 240 && mouseY >= 20 && mouseY <= 100) {
+    // toy infront of lion only
+    let offset = 100 * direction;
+    toyX = xPos + offset;
+    toyY = 490;
+    toySpeedY = 0; // Reset speed for jumping
+    toyFalling = false; // Start jumping state
+    jumping = true; // Start toy jump animation
+
+    if (meatX > xPos) {
+      direction = 1; // Face right
+    } else {
+      direction = -1; // Face left
+    }
   }
 }
 
-function keyReleased() {
-  if (key === "p" || key === "P") {
-    // stop when p is released
+function mouseReleased() {
+  // Stop jumping when mouse is released
+  if (mouseX >= 140 && mouseX <= 240 && mouseY >= 20 && mouseY <= 100) {
     toyX = -1;
     toyY = -1;
-    jumping = false;
+    jumping = false; // Stop toy jump animation
+
+    jumping = false; // stop lion jump
   }
+  
+}
+
+  function drawBush(x, y) {
+    
+  fill(128,128,0); // Bush green color
+  ellipse(x - 40, y + 20, 100, 100);
+  ellipse(x + 20, y +80, 100, 100);
+  ellipse(x-70, y+85, 100, 100);
 }
