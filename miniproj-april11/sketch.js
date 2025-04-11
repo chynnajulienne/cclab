@@ -73,7 +73,7 @@ class Particle {
     this.x += this.speedX;
     this.y += this.speedY;
 
-    // Use dist() instead of dx/dy math
+    
     let distance = dist(this.x, this.y, mouseX, mouseY);
 
     if (distance < 100) {
