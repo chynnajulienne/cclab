@@ -171,7 +171,7 @@ let relevantKeypoints = [5, 6, 11, 12];
             this.animationProgress = 1;
             this.lastTriggerFrame = frameCount;
             this.triggered = true;
-            return;
+            return; // ends the interaction
           }
         }
       }
