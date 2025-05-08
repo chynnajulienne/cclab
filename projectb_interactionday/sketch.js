@@ -14,8 +14,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 500); 
-
+  let canvas = createCanvas(800, 500);
+  canvas.parent("p5-canvas-container");
   river = new River();
   island = new Island();
   smallerIsland = new SmallerIsland();
