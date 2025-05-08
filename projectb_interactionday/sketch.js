@@ -14,8 +14,7 @@ function preload() {
 }
 
 function setup() {
-  let canvas = createCanvas(800, 500);
-  canvas.parent("p5-canvas-container");
+  createCanvas(800, 500); 
 
   river = new River();
   island = new Island();
@@ -34,7 +33,6 @@ function setup() {
   flowers.push(new Flower(590, height / 2 + 90));
   flowers.push(new Flower(720, height / 2 + 120));
 }
-
 
 function draw() {
   background(200, 240, 255);
@@ -76,7 +74,6 @@ class River {
     beginShape();
     vertex(this.x1, this.y1);
     bezierVertex(80, 320, 620, 420, this.x2, this.y2); 
-
     vertex(this.x2, 500);
     bezierVertex(640, 510, 160, 510, this.x1, 500); 
     endShape(CLOSE);
@@ -108,7 +105,6 @@ class SmallerIsland {
   display() {
     noStroke();
     fill(184, 134, 11);
-
     beginShape();
     vertex(0, 370 + this.offsetY);
     bezierVertex(200, 320 + this.offsetY, 600, 420 + this.offsetY, 800, 390 + this.offsetY);
@@ -126,8 +122,6 @@ class Tree {
 
   display() {
     noStroke();
-
-    // Leaves
     fill('green');
     circle(this.x + 40, this.y - 200, 100);
     circle(this.x + 40, this.y - 140, 100);
@@ -135,7 +129,6 @@ class Tree {
     circle(this.x - 40, this.y - 140, 120);
     circle(this.x - 60, this.y - 190, 100);
 
-    // Trunk
     fill(139, 69, 19);
     beginShape();
     vertex(this.x - 10, this.y);
@@ -158,51 +151,49 @@ class Flower {
   update(poses) {
     let headX = this.x;
     let headY = this.y - 80;
-    
-    //keypoints from ml5js posenet used 
-let relevantKeypoints = [5, 6, 11, 12];
-    for (let pose of poses) {
-      for (let i of relevantKeypoints) {
-        let kp = pose.keypoints[i];
-        if (kp.confidence > 0.1) { // how confident that its near the point
+    let relevantKeypoints = [5, 6, 11, 12];
+    let found = false;
+
+    for (let p = 0; p < poses.length; p++) {
+      let pose = poses[p];
+      for (let i = 0; i < relevantKeypoints.length; i++) {
+        let index = relevantKeypoints[i];
+        let kp = pose.keypoints[index];
+        if (kp.confidence > 0.1) {
           let d = dist(kp.x, kp.y, headX, headY);
           if (d < 100) {
             this.swayPhaseOffset = kp.x < this.x ? PI : 0;
             this.animationProgress = 1;
             this.lastTriggerFrame = frameCount;
             this.triggered = true;
-            return; // ends the interaction
+            found = true;
+            break;
           }
         }
       }
+      if (found) {
+        break;
+      }
     }
-    
-    // ^^ inspired by ml5js posenet code
-    
-    
+
     let framesSinceTrigger = frameCount - this.lastTriggerFrame;
     if (framesSinceTrigger > 0 && this.triggered) {
       this.animationProgress = max(0, 1 - framesSinceTrigger / 180);
     }
   }
 
- display() {
+  display() {
     push();
     translate(this.x, this.y);
-
-    // Swaying animation for the whole flower
     let swayAngle = sin(frameCount * 0.08 + this.swayPhaseOffset) * PI / 48 * this.animationProgress;
     rotate(swayAngle);
 
-    // Draw stem
     stroke(34, 139, 34);
     strokeWeight(6);
     line(0, 0, 0, -80);
-
     noStroke();
     fill(34, 139, 34);
 
-    // Draw left leaf
     push();
     translate(-10, -35);
     let leftLeafAngle = sin(frameCount * 0.05) * PI / 30 * this.animationProgress;
@@ -210,7 +201,6 @@ let relevantKeypoints = [5, 6, 11, 12];
     ellipse(0, 0, 20, 10);
     pop();
 
-    // Draw right leaf
     push();
     translate(10, -20);
     let rightLeafAngle = sin(frameCount * 0.05 + PI) * PI / 40 * this.animationProgress;
@@ -218,52 +208,48 @@ let relevantKeypoints = [5, 6, 11, 12];
     ellipse(0, 0, 20, 10);
     pop();
 
-    // Draw flower petals and center
     push();
     translate(0, -80); 
     let headSway = sin(frameCount * 0.05) * PI / 30 * this.animationProgress;
     rotate(headSway);
 
-    fill(255, 105, 180); // Pink petals
+    fill(255, 105, 180);
 
-  // Each petal
-  push(); // Left petal
-  translate(-12.5, 0);
-  rotate(sin(frameCount * 0.06) * PI / 60 * this.animationProgress);
-  ellipse(-7.5, 0, 30, 30);
-  pop();
+    push();
+    translate(-12.5, 0);
+    rotate(sin(frameCount * 0.06) * PI / 60 * this.animationProgress);
+    ellipse(-7.5, 0, 30, 30);
+    pop();
 
-  push(); // Right petal
-  translate(12.5, 0);
-  rotate(sin(frameCount * 0.08 + PI) * PI / 60 * this.animationProgress);
-  ellipse(7.5, 0, 30, 30);
-  pop();
+    push();
+    translate(12.5, 0);
+    rotate(sin(frameCount * 0.08 + PI) * PI / 60 * this.animationProgress);
+    ellipse(7.5, 0, 30, 30);
+    pop();
 
-  push(); // Top petal
-  translate(0, -12.5);
-  rotate(sin(frameCount * 0.05) * PI / 80 * this.animationProgress);
-  ellipse(0, -7.5, 30, 30);
-  pop();
+    push();
+    translate(0, -12.5);
+    rotate(sin(frameCount * 0.05) * PI / 80 * this.animationProgress);
+    ellipse(0, -7.5, 30, 30);
+    pop();
 
-  push(); // Bottom left petal
-  translate(-7.5, 12.5);
-  rotate(sin(frameCount * 0.03 + HALF_PI) * PI / 50 * this.animationProgress);
-  ellipse(-4.5, 7.5, 30, 30);
-  pop();
+    push();
+    translate(-7.5, 12.5);
+    rotate(sin(frameCount * 0.03 + HALF_PI) * PI / 50 * this.animationProgress);
+    ellipse(-4.5, 7.5, 30, 30);
+    pop();
 
-  push(); // Bottom right petal
-  translate(7.5, 12.5);
-  rotate(sin(frameCount * 0.05 + PI / 3) * PI / 50 * this.animationProgress);
-  ellipse(4.5, 7.5, 30, 30);
-  pop();
+    push();
+    translate(7.5, 12.5);
+    rotate(sin(frameCount * 0.05 + PI / 3) * PI / 50 * this.animationProgress);
+    ellipse(4.5, 7.5, 30, 30);
+    pop();
 
-    // Center of the flower
-    fill(255, 215, 0); // Yellow center
+    fill(255, 215, 0);
     noStroke();
     ellipse(0, 0, 25, 25);
 
-    pop(); // End flower head only
-    pop(); 
+    pop();
+    pop();
   }
-
 }
